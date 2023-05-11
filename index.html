@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Book Collection</title>
+    <style>
+      .book-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      .book-container div {
+        flex: 1 0 50%;
+        margin-bottom: 5px;
+      }
+      .book-container p {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Welcome to the Book Collection!</h1>
+
+    <h2>Add a Book</h2>
+    <form id="addBookForm">
+      <label for="title">Title:</label>
+      <input type="text" id="title" name="title" required>
+
+      <label for="author">Author:</label>
+      <input type="text" id="author" name="author" required>
+
+      <label for="publishdate">Published Date:</label>
+      <input type="date" id="publishdate" name="publishdate">
+
+      <button type="submit">Add Book</button>
+    </form>
+
+    <h2>Books</h2>
+    <div id="booksList"></div>
+
+    <script>
+      // Function to fetch books and update the books list
+      function fetchBooks() {
+        fetch('/books')
+          .then(response => response.json())
+          .then(data => {
+            const booksList = document.getElementById('booksList');
+            booksList.innerHTML = '';
+            data.forEach((book, index) => {
+              const bookContainer = document.createElement('div');
+              bookContainer.classList.add('book-container');
+
+              const titleBox = document.createElement('div');
+              const authorBox = document.createElement('div');
+              const publishDateBox = document.createElement('div');
+              const idBox = document.createElement('div');
+
+              titleBox.innerHTML = `<p><strong>Title:</strong> ${book.title}</p>`;
+              authorBox.innerHTML = `<p><strong>Author:</strong> ${book.author}</p>`;
+              publishDateBox.innerHTML = `<p><strong>Published Date:</strong> ${book.publishdate}</p>`;
+              idBox.innerHTML = `<p><strong>ID:</strong> ${book.id}</p>`;
+
+              bookContainer.appendChild(titleBox);
+              bookContainer.appendChild(authorBox);
+              bookContainer.appendChild(publishDateBox);
+              bookContainer.appendChild(idBox);
+
+              booksList.appendChild(bookContainer);
+            });
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+
+      // Function to handle form submission
+      function handleFormSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const title = form.title.value;
+        const author = form.author.value;
+        const publishdate = form.publishdate.value;
+        const bookData = {
+          title,
+          author,
+          publishdate
+        };
+
+        fetch('/books', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bookData)
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Book added:', data);
+            form.reset();
+            fetchBooks();
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+
+            // Function to delete a book
+            function deleteBook(id) {
+        fetch(`/books/${id}`, {
+          method: 'DELETE'
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Book successfully deleted.');
+              fetchBooks();
+            } else {
+              alert('Failed to delete book.');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+
+      // Fetch books on page load
+      fetchBooks();
+
+      // Add event listener to the form
+      const addBookForm = document.getElementById('addBookForm');
+      addBookForm.addEventListener('submit', handleFormSubmit);
+    </script>
+  </body>
+</html>
