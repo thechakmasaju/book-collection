@@ -52,7 +52,7 @@ app.delete('/books/:id', (req, res) => {
 // Helper function to generate unique IDs
 function generateUniqueId() {
   return Math.random().toString(36).substring(2, 15);
-}
+} 
 
 // Start the server
 app.listen(3000, () => {
