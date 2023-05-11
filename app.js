@@ -1,33 +1,29 @@
 const express = require('express');
-const app = express();
 const bodyParser = require('body-parser');
 
-// Middleware
+const app = express();
 app.use(bodyParser.json());
 
-// Store the books in an array
 let books = [];
 
-// Serve static files
-app.use(express.static('public'));
+// Serve static HTML file
+app.use(express.static(__dirname));
 
-// Route to serve index.html
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
-
-// Route to get the list of books
+// Get all books
 app.get('/books', (req, res) => {
   res.json(books);
 });
 
-// Route to add a book to the collection
+// Add a new book
 app.post('/books', (req, res) => {
   const { title, author, publishedDate } = req.body;
-  const id = generateUniqueId();
+
+  if (!title || !author) {
+    return res.status(400).json({ error: 'Title and author are required' });
+  }
 
   const book = {
-    id,
+    id: generateUniqueId(),
     title,
     author,
     publishedDate
@@ -38,25 +34,27 @@ app.post('/books', (req, res) => {
   res.json(book);
 });
 
-// Route to delete a book from the collection
+// Delete a book
 app.delete('/books/:id', (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
 
   const index = books.findIndex(book => book.id === id);
-  if (index !== -1) {
-    books.splice(index, 1);
-    res.json({ message: 'Book successfully deleted.' });
-  } else {
-    res.status(404).json({ message: 'Book not found.' });
+
+  if (index === -1) {
+    return res.status(404).json({ error: 'Book not found' });
   }
+
+  books.splice(index, 1);
+
+  res.json({ message: 'Book deleted successfully' });
 });
 
-// Helper function to generate a unique ID
+// Helper function to generate unique IDs
 function generateUniqueId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  return Math.random().toString(36).substring(2, 15);
 }
 
 // Start the server
 app.listen(3000, () => {
-  console.log('Server started on http://localhost:3000');
+  console.log('Server started on port 3000');
 });
